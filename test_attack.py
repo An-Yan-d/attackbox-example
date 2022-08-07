@@ -72,7 +72,7 @@ attack_list = {
     "SimBA": SimBA
 }
 
-l2_list = ["Sign_OPT","CW", "OPT_attack","FGSM","ZOO","SimBA"]
+l2_list = ["Sign_OPT","CW", "OPT_attack","FGSM","ZOO","SimBA","Evolutionary"]
 linf_list = ["PGD","Sign_OPT_lf","OPT_attack_lf","NES", "Sign_OPT_lf_bvls"]
 
 if args.attack in l2_list:
@@ -157,6 +157,8 @@ elif args.model == 'Augustin2020Adversarial':
     model = load_model_aa(model_name='Augustin2020Adversarial', model_dir=aa_model_dir, norm=norm)
 elif args.model == 'Rice2020Overfitting':
     model = load_model_aa(model_name='Rice2020Overfitting', model_dir=aa_model_dir, norm=norm)
+elif args.model == "Ding2020MMA":
+    model = load_model_aa(model_name="Ding2020MMA", model_dir=aa_model_dir, norm=norm)
 else:
     print('unsupported model'); exit(1)
 

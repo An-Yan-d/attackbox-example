@@ -25,7 +25,7 @@ class Evolutionary(object):
             x0 = x0.cpu().numpy()
             y0 = y0.cpu().numpy()
 
-        n_shape = (32, 32, 3)
+        n_shape = (32, 32, 3) #CIFAR10
             
         x0 = x0[0].reshape(n_shape)
         y0 = y0[0]
