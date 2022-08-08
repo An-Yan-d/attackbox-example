@@ -186,30 +186,38 @@ for i, (xi, yi) in enumerate(test_loader):
     ## data
     if i == args.test_batch: break
     xi, yi = xi.cuda(), yi.cuda()
-    
-    ## attack
-    theta_init = None
-    adv, distortion, is_success, nqueries, theta_signopt = attack(xi, yi,
-        targeted=args.targeted, query_limit=args.query, distortion=args.epsilon, args=args)
+    if args.attack != "Sign_OPT":
+        ## attack
+        theta_init = None
+        adv, distortion, is_success, nqueries, theta_signopt = attack(xi, yi,
+            targeted=args.targeted, query_limit=args.query, distortion=args.epsilon, args=args)
 
-    if theta_init is not None:
-        match = (theta_signopt.astype(np.int32) == theta_init.astype(np.int32)).sum() / np.sum(abs(theta_signopt))
-        print('sign matching rate between theta_init and theta_signopt:', match)
+        if theta_init is not None:
+            match = (theta_signopt.astype(np.int32) == theta_init.astype(np.int32)).sum() / np.sum(abs(theta_signopt))
+            print('sign matching rate between theta_init and theta_signopt:', match)
 
-    if is_success:
-        stop_queries.append(nqueries)
+        if is_success:
+            stop_queries.append(nqueries)
 
-    if args.targeted == False:
-        r_count = (torch.max(amodel.predict(adv),1)[1]==yi).nonzero().shape[0]
-        clean_count = (torch.max(amodel.predict(xi),1)[1]==yi).nonzero().shape[0]
-        total_r_count += r_count
-        total_clean_count += clean_count
-        total_distance += utils.distance(adv,xi,norm=norm.lower())
-    # if args.attack in ["Sign_OPT","OPT_attack"]:
-    #     if i == 0:
-    #         logs = torch.zeros(attack.get_log().size())
-    #     logs += attack.get_log()
-    successes.append(is_success)
+        if args.targeted == False:
+            r_count = (torch.max(amodel.predict(adv),1)[1]==yi).nonzero().shape[0]
+            clean_count = (torch.max(amodel.predict(xi),1)[1]==yi).nonzero().shape[0]
+            total_r_count += r_count
+            total_clean_count += clean_count
+            total_distance += utils.distance(adv,xi,norm=norm.lower())
+        # if args.attack in ["Sign_OPT","OPT_attack"]:
+        #     if i == 0:
+        #         logs = torch.zeros(attack.get_log().size())
+        #     logs += attack.get_log()
+        successes.append(is_success)
+    else:
+        adv= attack(xi, yi, targeted=args.targeted, query_limit=args.query)
+        if args.targeted == False:
+            r_count = (torch.max(amodel.predict(adv),1)[1]==yi).nonzero().shape[0]
+            total_r_count += r_count
+            clean_count = (torch.max(amodel.predict(xi), 1)[1] == yi).nonzero().shape[0]
+            total_clean_count += clean_count
+            total_distance += utils.distance(adv, xi, norm=norm.lower())
 
 
 # if args.attack in ["Sign_OPT", "OPT_attack"]:
@@ -233,7 +241,7 @@ logging.info("="*10)
 logging.info(f"clean count:{total_clean_count}")
 logging.info(f"acc under attack count:{total_r_count}")
 logging.info(f"avg total queries used:{num_queries}")
-logging.info(f"avg stop queries used:{np.mean(stop_queries)}")
+# logging.info(f"avg stop queries used:{np.mean(stop_queries)}")
 logging.info(f"average distortion:{total_distance/(args.test_batch*args.test_batch_size)}")
 #logging.info(clean_count - r_count, (clean_count - r_count)/clean_count)
 logging.info("robust accuracy rays: {}".format(1 - np.mean(rays_successes)))
